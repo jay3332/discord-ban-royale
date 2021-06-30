@@ -1,4 +1,5 @@
-import discord, random
+import discord
+import random
 from discord.ext import commands
 
 intents = discord.Intents.default()
@@ -23,26 +24,29 @@ client.config = {
     "token": "" # the BOT TOKEN that you'll be running this bot with
 }
 
-class Main (commands.Cog):
+class Main(commands.Cog):
 
-    def __init__(self, client):
+    def __init__(self, client) -> None:
         self.client = client
         self.config = self.client.config
 
     @commands.command(name="ban", aliases=['b'])
     async def _ban(self, ctx, *, user=None):
-
-        if not user: return await ctx.send(f"{ctx.author.mention}, I need someone to ban.")
+        if not user: 
+            return await ctx.send(f"{ctx.author.mention}, I need someone to ban.")
         if ctx.channel.id != self.config['ban_channel']: 
             return await ctx.send(f"{ctx.author.mention}, You can't ban in this channel!")
-        if not ctx.guild: return await ctx.send("You can't ban people in DMs.")
+        if not ctx.guild: 
+            return await ctx.send("You can't ban people in DMs.")
+        try: 
+            user = await commands.MemberConverter().convert(ctx, user)
+        except: 
+            return await ctx.send(f"{ctx.author.mention}, I can't find that user!")
 
-        try: user = await commands.MemberConverter().convert(ctx, user)
-        except: return await ctx.send(f"{ctx.author.mention}, I can't find that user!")
+        if user.id==ctx.author.id: 
+            return await ctx.send(f"{ctx.author.mention}, You can't ban yourself.")
 
-        if user.id==ctx.author.id: return await ctx.send(f"{ctx.author.mention}, You can't ban yourself.")
-
-        if ctx.author.top_role.position<user.top_role.position:
+        if ctx.author.top_role.position < user.top_role.position:
             return await ctx.send(f"{ctx.author.mention}, You can't ban that person!")
 
         if random.random() < self.config['ban_chance']:
