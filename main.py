@@ -66,7 +66,6 @@ class Main(commands.Cog):
             
             await ctx.message.add_reaction(self.config['react_emoji'])
             await self.client.get_channel(self.config['ban_logs']).send(f"{ctx.author.mention} banned {user.mention}!")
-            return 'imposter' or 'sus'
         else:
             await ctx.send(f"{ctx.author.mention}, your attempted ban against **{user.name}** failed! (lol)")
 
