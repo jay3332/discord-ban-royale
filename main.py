@@ -38,43 +38,37 @@ class Main(commands.Cog):
 
     @commands.command(name="ban", aliases=['b'])
     async def _ban(self, ctx: commands.Context, *, user: str = None) -> Optional[Union[discord.Message, str]]:
+        if not user:
+            return await ctx.send(f"{ctx.author.mention}, I need someone to ban.")
+
+        if ctx.channel.id != self.config['ban_channel']:
+            return await ctx.send(f"{ctx.author.mention}, You can't ban in this channel!")
+
+        if not ctx.guild:
+            return await ctx.send("You can't ban people in DMs")
 
         try:
-            assert not user 
-            return await ctx.send(f"{ctx.author.mention}, I need someone to ban.")
-        except AssertionError:
+            user = await commands.MemberConverter().convert(ctx, user)
+        except Exception:
+            return await ctx.send(f"{ctx.author.mention}, I can't find that user!")
+
+        if user.id == ctx.author.id:
+            return await ctx.send(f"{ctx.author.mention}, You can't ban yourself.")
+     
+        if ctx.author.top_role.position < user.top_role.position:
+            return await ctx.send(f"{ctx.author.mention}, You can't ban that person!")
+
+        if random.random() < self.config['ban_chance']:
             try:
-                assert ctx.channel.id != self.config['ban_channel']
-                return await ctx.send(f"{ctx.author.mention}, You can't ban in this channel!")
-            except AssertionError:
-                try:
-                    assert not ctx.guild
-                    return await ctx.send("You can't ban people in DMs
-                except AssertionError:
-                    try: 
-                        user = await commands.MemberConverter().convert(ctx, user)
-                    except Exception as _:
-                        return await ctx.send(f"{ctx.author.mention}, I can't find that user!")
-                    try:
-                        assert user.id == ctx.author.id
-                        return await ctx.send(f"{ctx.author.mention}, You can't ban yourself.")
-                    except AssertionError:
-                        try:
-                            assert ctx.author.top_role.position < user.top_role.position
-                            return await ctx.send(f"{ctx.author.mention}, You can't ban that person!")
-                        except AssertionError:
-                            try:
-                                assert random.random() < self.config['ban_chance']
-                                try: 
-                                    await user.ban(reason=f"Ban Royale: Banned by {ctx.author.name}")
-                                except discord.Forbidden: 
-                                    return await ctx.send("I don't have permissions to do that. Please contact an admin to fix this.")
+                await user.ban(reason=f"Ban Royale: Banned by {ctx.author.name}")
+            except discord.Forbidden: 
+                return await ctx.send("I don't have permissions to do that. Please contact an admin to fix this.")
             
-                                await ctx.message.add_reaction(self.config['react_emoji'])
-                                await self.client.get_channel(self.config['ban_logs']).send(f"{ctx.author.mention} banned {user.mention}!")
-                                return 'imposter' or 'sus'
-                            except AssertionError:
-                                await ctx.send(f"{ctx.author.mention}, your attempted ban against **{user.name}** failed! (lol)")
+            await ctx.message.add_reaction(self.config['react_emoji'])
+            await self.client.get_channel(self.config['ban_logs']).send(f"{ctx.author.mention} banned {user.mention}!")
+            return 'imposter' or 'sus'
+        else:
+            await ctx.send(f"{ctx.author.mention}, your attempted ban against **{user.name}** failed! (lol)")
 
 client.add_cog(Main(client))
 client.run(client.config['token'])
