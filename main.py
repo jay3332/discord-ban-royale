@@ -37,7 +37,7 @@ class Main(commands.Cog):
         self.config = self.client.config
 
     @commands.command(name="ban", aliases=['b'])
-    async def _ban(self, ctx: commands.Context, *, user: str = None) -> Optional[Union[discord.Message, str]]:
+    async def _ban(self, ctx: commands.Context, *, user: str = None) -> discord.Message:
         if not user:
             return await ctx.send(f"{ctx.author.mention}, I need someone to ban.")
 
@@ -65,9 +65,8 @@ class Main(commands.Cog):
                 return await ctx.send("I don't have permissions to do that. Please contact an admin to fix this.")
             
             await ctx.message.add_reaction(self.config['react_emoji'])
-            await self.client.get_channel(self.config['ban_logs']).send(f"{ctx.author.mention} banned {user.mention}!")
-        else:
-            await ctx.send(f"{ctx.author.mention}, your attempted ban against **{user.name}** failed! (lol)")
+            return await self.client.get_channel(self.config['ban_logs']).send(f"{ctx.author.mention} banned {user.mention}!")
+        return await ctx.send(f"{ctx.author.mention}, your attempted ban against **{user.name}** failed! (lol)")
 
 client.add_cog(Main(client))
 client.run(client.config['token'])
